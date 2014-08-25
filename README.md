@@ -17,7 +17,7 @@ or go to http://pastebin.com/DJVaDmaA
 
 A program using ComputerCraft-EventLoop may look like this:
 
-```
+```lua
 os.loadAPI('eventloop') --load the ComputerCraft-EventLoop API
 
 local loop = eventloop.create() --get an EventLoop instance
@@ -93,7 +93,7 @@ Example output:
 
 > Example:
 
-> ```
+> ```lua
   loop:on('mouse_click', function (button, x, y)
     local button_name = 'left'
     if button == 2 then
