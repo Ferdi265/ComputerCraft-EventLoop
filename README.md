@@ -15,7 +15,7 @@ or go to http://pastebin.com/DJVaDmaA
 
 ## Usage ##
 
-An example program using ComputerCraft-EventLoop looks like this:
+A program using ComputerCraft-EventLoop may look like this:
 
 ```
 os.loadAPI('eventloop') --load the ComputerCraft-EventLoop API
