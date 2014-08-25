@@ -104,6 +104,11 @@ Example output:
   end)
   ```
 
+> ##### ```terminate``` Events #####
+
+> When ComputerCraft-EventLoop receives a ```terminate``` Event, the loop will automatically be terminated forcefully.
+  If there is an Event Listener for ```terminate``` the loop will continue as usual and will *not* be terminated.
+
 #### ```EventLoop:once([eventType], function)``` ####
 
 > Same as [on](#EventLoopOnEventType-function), except that the Event Listener is removed after the event is fired the first time. (i.e. the listener is only called once)
