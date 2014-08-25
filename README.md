@@ -53,13 +53,24 @@ Example output:
 #### ```EventLoop:run([function])``` ####
 
 Starts the event loop and executes the given function.
+This function will return once there are no more events to handle or the [EventLoop](#EventLoop) is [terminated](#EventLoopTerminate).
+
+**Returns** the [EventLoop](#EventLoop) instance.
 
 #### ```EventLoop:timeout([time], function)``` ####
 
 Starts a timer that executes the function after time seconds, defaulting to 0 seconds.
-**Returns** an id number that can be used to [cancel](#) the timeout.
+
+**Returns** an id number that can be used to [cancel](#EventLoopCancelId) the timeout.
 
 #### ```EventLoop:interval([time], function)``` ####
 
 Starts a timer that executes the function every time seconds, defaulting to 1 second.
-**Returns** an id number that can be used to [cancel](#) the interval.
+
+**Returns** an id number that can be used to [cancel](#EventLoopCancelId) the interval.
+
+#### ```EventLoop:cancel(id)``` ####
+
+Cancels the [timeout](#EventLoopTimeoutTime-Function) or [interval](#EventLoopIntervalTime-Function) with the given id.
+
+**Returns** the [EventLoop](#EventLoop) instance.
