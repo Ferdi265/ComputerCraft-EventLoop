@@ -106,7 +106,21 @@ Example output:
 
 > Removes the specified event listener for the given event type.
   If no type is given, removes the specified 'any event' Listener.
-  If no function is fiven, removes all Event Eisteners for that type.
+  If no function is given, removes all Event Eisteners for that type.
   If called without arguments, removes all Listeners.
 
+> **Returns** the [EventLoop](#EventLoop) instance.
+
+#### ```EventLoop:fire([eventType], [parameters...])``` ####
+
+> Fires the specified custom event with the given parameters.
+  The only difference to standard computercraft events is, that these events can have more than 5 parameters.
+
+> **Returns** the [EventLoop](#EventLoop) instance.
+
+#### ```EventLoop:terminate()``` ####
+
+> Forces the loop to terminate after the current iteration.
+  Event Listeners for the currently handled event will still be executed, but no further events will be handled.
+  
 > **Returns** the [EventLoop](#EventLoop) instance.
