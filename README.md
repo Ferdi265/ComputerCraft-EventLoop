@@ -5,6 +5,14 @@ An implementation of an Event Loop for ComputerCraft. Provides an interface simi
 
 ComputerCraft-EventLoop is an API for Event-driven programming in ComputerCraft Lua that eliminates the need to create your own ```while true do ... end``` loop
 
+## Installation ##
+
+To install this package via pastebin, run
+
+```pastebin get DJVaDmaA eventloop```
+
+or go to http://pastebin.com/DJVaDmaA
+
 ## Usage ##
 
 An example program using ComputerCraft-EventLoop looks like this:
