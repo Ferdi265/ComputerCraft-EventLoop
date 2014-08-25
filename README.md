@@ -1,9 +1,9 @@
 ComputerCraft-EventLoop
 =======================
 
-An implementation of an Event Loop for ComputerCraft. Provides an interface similar to Node.js's EventEmitter and ```setTimeout()```.
+An implementation of an Event Loop for ComputerCraft that provides an interface similar to Node.js's EventEmitter and ```setTimeout()```.
 
-ComputerCraft-EventLoop is an API for Event-driven programming in ComputerCraft Lua that eliminates the need to create your own ```while true do ... end``` loop
+ComputerCraft-EventLoop is an API for Event-driven programming in ComputerCraft Lua that eliminates the need to create your own loop to capture events.
 
 ## Installation ##
 
@@ -15,7 +15,7 @@ or go to http://pastebin.com/DJVaDmaA
 
 ## Usage ##
 
-An example program using ComputerCraft-EventLoop looks like this:
+A program using ComputerCraft-EventLoop may look like this:
 
 ```
 os.loadAPI('eventloop') --load the ComputerCraft-EventLoop API
@@ -107,7 +107,7 @@ Example output:
 > ##### ```terminate``` Events #####
 
 > When ComputerCraft-EventLoop receives a ```terminate``` Event, the loop will automatically be terminated forcefully.
-  If there is an Event Listener for ```terminate``` the loop will continue as usual and will *not* be terminated.
+  If there is an Event Listener for ```terminate```, the loop will continue as usual and will *not* be terminated.
 
 #### ```EventLoop:once([eventType], function)``` ####
 
