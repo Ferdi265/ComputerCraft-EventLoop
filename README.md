@@ -46,67 +46,67 @@ Example output:
 
 ### ```eventloop.create()``` ###
 
-**Returns** the [EventLoop](#EventLoop) instance.
+> **Returns** the [EventLoop](#EventLoop) instance.
 
 ### ```EventLoop``` ###
 
 #### ```EventLoop:run([function])``` ####
 
-Starts the event loop and executes the given function.
-This function will return once there are no more events to handle or the [EventLoop](#EventLoop) is [terminated](#EventLoopTerminate).
+> Starts the event loop and executes the given function.
+  This function will return once there are no more events to handle or the [EventLoop](#EventLoop) is [terminated](#EventLoopTerminate).
 
-**Returns** the [EventLoop](#EventLoop) instance.
+> **Returns** the [EventLoop](#EventLoop) instance.
 
 #### ```EventLoop:timeout([time], function)``` ####
 
-Starts a timer that executes the function after time seconds, defaulting to 0 seconds.
+> Starts a timer that executes the function after time seconds, defaulting to 0 seconds.
 
-**Returns** an id number that can be used to [cancel](#EventLoopCancelId) the timeout.
+> **Returns** an id number that can be used to [cancel](#EventLoopCancelId) the timeout.
 
 #### ```EventLoop:interval([time], function)``` ####
 
-Starts a timer that executes the function every time seconds, defaulting to 1 second.
+> Starts a timer that executes the function every time seconds, defaulting to 1 second.
 
-**Returns** an id number that can be used to [cancel](#EventLoopCancelId) the interval.
+> **Returns** an id number that can be used to [cancel](#EventLoopCancelId) the interval.
 
 #### ```EventLoop:cancel(id)``` ####
 
-Cancels the [timeout](#EventLoopTimeoutTime-Function) or [interval](#EventLoopIntervalTime-Function) with the given id.
+> Cancels the [timeout](#EventLoopTimeoutTime-Function) or [interval](#EventLoopIntervalTime-Function) with the given id.
 
-**Returns** the [EventLoop](#EventLoop) instance.
+> **Returns** the [EventLoop](#EventLoop) instance.
 
 #### ```EventLoop:on([eventType], function)``` ####
 
-Registers an Event Listener for the given event type. The function will be called every time the event is fired.
-The function will be called with the event parameters as arguments.
-If no type is given, the function will be called for every event, regardless of type. Such Event Listeners will have the event type as the first argument.
+> Registers an Event Listener for the given event type. The function will be called every time the event is fired.
+  The function will be called with the event parameters as arguments.
+  If no type is given, the function will be called for every event, regardless of type. Such Event Listeners will have the event type as the first argument.
 
-**Returns** the [EventLoop](#EventLoop) instance.
+> **Returns** the [EventLoop](#EventLoop) instance.
 
-Example:
+> Example:
 
-```
-loop:on('mouse_click', function (button, x, y)
-  local button_name = 'left'
-  if button == 2 then
-    button_name = 'right'
-  end
-  print('You clicked the ' .. button_name .. ' mouse button!')
-  print('X-Pos: ' .. x .. ', Y-Pos: ' .. y)
-end)
-```
+> ```
+  loop:on('mouse_click', function (button, x, y)
+    local button_name = 'left'
+    if button == 2 then
+      button_name = 'right'
+    end
+    print('You clicked the ' .. button_name .. ' mouse button!')
+    print('X-Pos: ' .. x .. ', Y-Pos: ' .. y)
+  end)
+  ```
 
 #### ```EventLoop:once([eventType], function)``` ####
 
-Same as [on](#EventLoopOnEventType-function), except that the Event Listener is removed after the event is fired the first time. (i.e. the listener is only called once)
+> Same as [on](#EventLoopOnEventType-function), except that the Event Listener is removed after the event is fired the first time. (i.e. the listener is only called once)
 
-**Returns** the [EventLoop](#EventLoop) instance.
+> **Returns** the [EventLoop](#EventLoop) instance.
 
 #### ```EventLoop:off([eventType], [function])``` ####
 
-Removes the specified event listener for the given event type.
-If no type is given, removes the specified 'any event' Listener.
-If no function is fiven, removes all Event Eisteners for that type.
-If called without arguments, removes all Listeners.
+> Removes the specified event listener for the given event type.
+  If no type is given, removes the specified 'any event' Listener.
+  If no function is fiven, removes all Event Eisteners for that type.
+  If called without arguments, removes all Listeners.
 
-**Returns** the [EventLoop](#EventLoop) instance.
+> **Returns** the [EventLoop](#EventLoop) instance.
