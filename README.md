@@ -83,23 +83,22 @@ Example output:
 
 > **Returns** the [EventLoop](#eventloop) instance.
 
-#### ```EventLoop:on([eventType], function)``` ####
+#### ```EventLoop:on([eventType, [parameters...]], function)``` ####
 
-> Registers an Event Listener for the given event type. The function will be called every time the event is fired.
-  The function will be called with the event parameters as arguments.
-  If no type is given, the function will be called for every event, regardless of type. Such Event Listeners will have the event type as the first argument.
+> Registers an Event Listener for the given event type. The function will be called every time the event is fired and the given parameters match.
+  The function will be called with the additinal event parameters as arguments.
+
+> Additional event parameters are all the parameters of the event that you did not specify.
+  i.e. if you want to handle only left clicks, you can specify the ```button``` parameter as ```1```, and receive only the ```x``` and ```y``` parameters as the button parameter would always be ```1```.
+
+> If no type is given, the function will be called for every event, regardless of type. Such Event Listeners will have the event type as the first argument.
 
 > **Returns** the [EventLoop](#eventloop) instance.
 
 > Example:
 
 > ```lua
-  loop:on('mouse_click', function (button, x, y)
-    local button_name = 'left'
-    if button == 2 then
-      button_name = 'right'
-    end
-    print('You clicked the ' .. button_name .. ' mouse button!')
+  loop:on('mouse_click', 1, function (x, y)
     print('X-Pos: ' .. x .. ', Y-Pos: ' .. y)
   end)
   ```
@@ -109,7 +108,7 @@ Example output:
 > When ComputerCraft-EventLoop receives a ```terminate``` Event, the loop will automatically be terminated forcefully.
   If there is an Event Listener for ```terminate```, the loop will continue as usual and will *not* be terminated.
 
-#### ```EventLoop:once([eventType], function)``` ####
+#### ```EventLoop:once([eventType, [parameters...]], function)``` ####
 
 > Same as [on](#eventlooponeventtype-function), except that the Event Listener is removed after the event is fired the first time. (i.e. the listener is only called once)
 
@@ -124,12 +123,18 @@ Example output:
 
 > **Returns** the [EventLoop](#eventloop) instance.
 
-#### ```EventLoop:fire([eventType], [parameters...])``` ####
+#### ```EventLoop:fire(eventType, [parameters...])``` ####
 
 > Fires the specified custom event with the given parameters.
   The only difference to standard computercraft events is, that these events can have more than 5 parameters.
 
 > **Returns** the [EventLoop](#eventloop) instance.
+
+#### ```EventLoop:defer(<time | [eventType, [parameters...]]>)``` ####
+
+> Defers execution of the current timeout or event handler. During waiting time, other event handlers may be called.
+
+> **Returns** ```nil``` when called with time, and the additional event parameters when called with event parameters
 
 #### ```EventLoop:terminate()``` ####
 
@@ -137,3 +142,4 @@ Example output:
   Event Listeners for the currently handled event will still be executed, but no further events will be handled.
   
 > **Returns** the [EventLoop](#eventloop) instance.
+
