@@ -52,54 +52,30 @@ local EventLoop = proto({
 	--//
 	--//overrides os.pullEventRaw to capture events pulled during event handler execution
 	init = function (self)
-		self.typeListeners = {} --//event listeners listening for a specific type of event
-		self.listeners = {} --//event listeners listening for any event
+		self.listeners = {} --//TODO
 		self.timeouts = {} --//saves timeout ids for the timeout and interval methods
 		self.fired = {} --//contains custom fired events
-		self.events = {} --//contains events pulled during handler execution
 		self.running = false --//saves state of EventLoop
-		self.nativePullEventRaw = os.pullEventRaw --//save unmodified pullEventRaw
-		self.redirectedPullEventRaw = function (filter)
-			--//returns the first fired custom event or pulls an Event
-			--//captured events are then forwarded to the events table
-			local event = {}
-			repeat
-				if self.fired[1] then
-					event = self.fired[1]
-					table.remove(self.fired, 1)
-					table.insert(self.events, event)
-				else
-					os.pullEventRaw = self.nativePullEventRaw --//calls to the native pullEventRaw somehow call os.pullEventRaw sometimes
-					--//reset redirection temporarily to prevent event duplication
-					event = {self.nativePullEventRaw()}
-					os.pullEventRaw = self.redirectedPullEventRaw --//re-add redirection
-					table.insert(self.events, event)
-				end
-			until event[1] == filter or not filter
-			return unpack(event)
-		end
 		return self
 	end,
 	run = function (self, fn)
 		--//starts the EventLoop
 		--//executes the given function immediately
-		self:init() --//re-initialize
 		if fn then
 			self:timeout(0, fn) --//execute function immediately after events are handled
 		end
 		if not self.running then --//prevent multiple loops at the same time
 			self.running = true
-			os.pullEventRaw = self.redirectedPullEventRaw --//redirect events
+			self:init() --//re-initialize
 			while true do --//actual event loop
-				if numkeys(self.typeListeners) + #self.listeners > 0 and not self.exit then
+				if numkeys(self.listeners) > 0 and not self.exit then
 					--//if there are listeners waiting for events and the loop is not asked to terminate
-					self:handle(self:event()) --//handle the next event
+					self:handle(self:event())
 				else
 					--//else break event loop
 					break
 				end
 			end
-			os.pullEventRaw = self.nativePullEventRaw --//reset event redirection
 			self.running = false
 		end
 		return self
@@ -108,17 +84,11 @@ local EventLoop = proto({
 		--//returns the next processed event
 		--//if that doesn't exists, consume fired custom event or pull event
 		local event
-		if self.events[1] then
-			event = self.events[1]
-			table.remove(self.events, 1)
-		elseif self.fired[1] then
+		if self.fired[1] then
 			event = self.fired[1]
 			table.remove(self.fired, 1)
 		else
-			os.pullEventRaw = self.nativePullEventRaw --//calls to the native pullEventRaw somehow call os.pullEventRaw sometimes
-			--//reset redirection temporarily to prevent event duplication
-			event = {self.nativePullEventRaw()}
-			os.pullEventRaw = self.redirectedPullEventRaw --//re-add redirection
+			event = {coroutine.yield()}
 		end
 		local type = event[1]
 		table.remove(event, 1)
@@ -131,6 +101,7 @@ local EventLoop = proto({
 		--//calls all listeners listening for this event
 		local callListener = function (listener, ...)
 			--//calls the listener and handles error state
+			--[[ TODO add coroutine stuff
 			local args = {...}
 			local ok, err = pcall(function ()
 				listener(unpack(args))
@@ -147,19 +118,19 @@ local EventLoop = proto({
 					--//else, propagate error
 					error(err, 0)
 				end
-			end
+			end]]
 		end
 		if event.type ~= 'error' then
 			--//call 'any event' listeners if the event is not an error
-			for i, fn in ipairs(self.listeners) do
-				callListener(fn, event.type, unpack(event.args))
+			for i, listener in ipairs(self.listeners) do
+				callListener(listener, event.type, unpack(event.args))
 			end
 		end
-		if self.typeListeners[event.type] then
+		if self.listeners[event.type] then
 			--//if there are listeners for type
-			for i, fn in ipairs(self.typeListeners[event.type]) do
+			for i, listener in ipairs(self.listeners[event.type]) do
 				--//call them
-				callListener(fn, unpack(event.args))
+				callListener(listener, unpack(event.args))
 			end
 		elseif event.type == 'terminate' then
 			--//if there are no listeners for 'terminate'
@@ -223,40 +194,49 @@ local EventLoop = proto({
 		table.insert(self.fired, {type, ...})
 		return self
 	end,
-	on = function (self, type, fn)
-		--//registers an event listener for type or an event listener for any type if no type was given
+	on = function (self, eventType, fn)
+		--//registers an event listener for eventType or an event listener for any type if no type was given
 		if not fn then
-			fn = type
-			type = nil
+			fn = eventType
+			eventType = nil
 		end
-		if type then
-			if not self.typeListeners[type] then
-				self.typeListeners[type] = {}
+		if eventType then
+			if type(eventType) ~= 'string' then
+				error('string expected, got ' .. type(eventType), 2)
 			end
-			table.insert(self.typeListeners[type], fn)
+			if not self.listeners[eventType] then
+				self.listeners[eventType] = {}
+			end
+			table.insert(self.listeners[eventType], {
+				fn = fn,
+				cr = coroutine.create(fn)
+			})
 		else
 			table.insert(self.listeners, fn)
 		end
-		return self 
+		return self
 	end,
-	once = function (self, type, fn)
+	once = function (self, eventType, fn)
 		--//registers an event listener for type or an event listener for any type if no type was given
 		--//this is a once listener, it removes itself upon execution
 		if not fn then
-			fn = type
-			type = nil
+			fn = eventType
+			eventType = nil
 		end
 		local listener
 		listener = function (...)
-			if type then
-				self:off(type, listener)
+			if eventType then
+				self:off(eventType, listener)
 			else
 				self:off(listener)
 			end
 			fn(...)
 		end
-		if type then
-			self:on(type, listener)
+		if eventType then
+			if type(eventType) ~= 'string' then
+				error('string expected, got ' .. type(eventType), 2)
+			end
+			self:on(eventType, listener)
 		else
 			self:on(listener)
 		end
@@ -271,30 +251,35 @@ local EventLoop = proto({
 			end
 		end
 		if eventType then
-			if self.typeListeners[eventType] then
+			if type(eventType) ~= 'string' then
+				error('string expected, got ' .. type(eventType), 2)
+			end
+			if self.listeners[eventType] then
 				if fn then
-					for i, listener in ipairs(self.typeListeners[eventType]) do
-						if listener == fn then
-							table.remove(self.typeListeners[eventType], i)
+					for i, listener in ipairs(self.listeners[eventType]) do
+						if listener.fn == fn then
+							table.remove(self.listeners[eventType], i)
 							break
 						end
 					end
 				end
-				if #self.typeListeners[eventType] == 0 or not fn then
-					self.typeListeners[eventType] = nil
+				if #self.listeners[eventType] == 0 or not fn then
+					self.listeners[eventType] = nil
 				end
 			end
 		else
 			if fn then
 				for i, listener in ipairs(self.listeners) do
-					if listener == fn then
+					if listener.fn == fn then
 						table.remove(self.listeners, i)
 						break
 					end
 				end
 			end
-			if #self.listeners == 0 or not fn then
-				self.listeners = {}
+			if not fn then
+				for i in ipairs(self.listeners) do
+					self.listeners[i] = nil
+				end
 			end
 		end
 		return self
@@ -303,6 +288,7 @@ local EventLoop = proto({
 		--//forces the loop to terminate after the current iteration
 		--//listeners for the current event will still be executed, but no further events will be handled
 		self.exit = true
+		return self
 	end
 })
 ----Globals
