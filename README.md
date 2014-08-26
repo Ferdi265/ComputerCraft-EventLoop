@@ -61,11 +61,31 @@ Example output:
 > Starts the event loop and executes the given function.
   This function will return once there are no more events to handle or the [EventLoop](#eventloop) is [terminated](#eventloopterminate).
 
+> Example:
+
+> ```lua
+  loop:run(function () --start the loop
+    loop:run(function () --calling run a second time doesn't create a second loop.
+      --it's equivalent to EventLoop:timeout(0, function) if called while an event loop is running.
+      print('Inner loop?')
+    end)
+  end)
+  ```
+
 > **Returns** the [EventLoop](#eventloop) instance.
 
 #### ```EventLoop:timeout([time], function)``` ####
 
 > Starts a timer that executes the function after time seconds, defaulting to 0 seconds.
+
+> Example:
+
+> ```lua
+  print('Shutting down')
+  loop:timeout(1, function () --leave time for people to read the message
+    os.shutdown()
+  end)
+  ```
 
 > **Returns** an id number that can be used to [cancel](#eventloopcancelid) the timeout.
 
@@ -73,11 +93,34 @@ Example output:
 
 > Starts a timer that executes the function every time seconds, defaulting to 1 second.
 
+> Example:
+
+> ```lua
+  print('send message to computer 2 regularly')
+  loop:interval(1, function ()
+    rednet.send(2, 'still running')
+  end)
+  ```
+
 > **Returns** an id number that can be used to [cancel](#eventloopcancelid) the interval.
 
 #### ```EventLoop:cancel(id)``` ####
 
 > Cancels the [timeout](#eventlooptimeouttime-function) or [interval](#eventloopintervaltime-function) with the given id.
+
+> Example:
+
+> ```lua
+  print('send message to computer 2 regularly')
+  local heartBeatId = loop:interval(1, function ()
+    rednet.send(2, 'still running')
+  end)
+  loop:once('rednet_message', 2, function (msg) --when receiving a message from 2
+    if msg == 'stop' then --and the text is 'stop'
+      loop:cancel(heartBeatId) --stop the heartbeat 
+    end
+  end)
+  ```
 
 > **Returns** the [EventLoop](#eventloop) instance.
 
@@ -110,6 +153,15 @@ Example output:
 
 > Same as [on](#eventlooponeventtype-parameters-function), except that the Event Listener is removed after the event is fired the first time. (i.e. the listener is only called once)
 
+> Example:
+
+> ```lua
+  loop:once('terminate', function ()
+    print('shutting down')
+    os.shutdown()
+  end)
+  ```
+
 > **Returns** the [EventLoop](#eventloop) instance.
 
 #### ```EventLoop:off([eventType], [function])``` ####
@@ -119,6 +171,17 @@ Example output:
   If no function is given, removes all Event Eisteners for that type.
   If called without arguments, removes all Listeners.
 
+> Example:
+
+> ```lua
+  loop:on('rednet_message', 2, function (msg)
+    print('2 said: ', msg)
+  end)
+  loop:on('char', 'q', function ()
+    loop:off('rednet_message')
+  end)
+  ```
+
 > **Returns** the [EventLoop](#eventloop) instance.
 
 #### ```EventLoop:fire(eventType, [parameters...])``` ####
@@ -126,18 +189,64 @@ Example output:
 > Fires the specified custom event with the given parameters.
   The only difference to standard computercraft events is, that these events can have more than 5 parameters.
 
+> Example:
+
+> ```lua
+  loop:on('noFuel', function ()
+    local slot = turtle.getSelectedSlot()
+    turtle.select(1)
+    turtle.refuel()
+    turtle.select(slot)
+  end)
+  function checkFuel()
+    if turtle.getFuelLevel() == 0 then
+      loop:fire('noFuel')
+    end
+  end
+  ```
+
 > **Returns** the [EventLoop](#eventloop) instance.
 
 #### ```EventLoop:defer(<time | [eventType, [parameters...]]>)``` ####
 
 > Defers execution of the current timeout or event handler. During waiting time, other event handlers may be called.
 
+> Example:
+
+> ```lua
+  print('Press k!')
+  while true do
+    local key = loop:defer('char')
+    if key == 'k' then
+      print('Correct!')
+      break
+    else
+      print('Incorrect, try again.')
+    end
+  end
+  print('Goodbye')
+  loop:defer(1) --leave time to read the message
+  os.shutdown()
+  ```
+  
 > **Returns** ```nil``` when called with time, and the additional event parameters when called with event parameters
 
 #### ```EventLoop:terminate()``` ####
 
 > Forces the loop to terminate after the current iteration.
   Event Listeners for the currently handled event will still be executed, but no further events will be handled.
-  
+
+> ```lua
+  local count = 0
+  loop:on('terminate', function ()
+    count = count + 1
+    if count == 2 then
+      loop:terminate()
+    else
+      print('Try again.')
+    end
+  end)
+  ```
+
 > **Returns** the [EventLoop](#eventloop) instance.
 
