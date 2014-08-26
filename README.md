@@ -33,10 +33,8 @@ loop:run(function () --run a function in the event loop
     print('This will happen every second!')
   end)
   
-  loop:on('char', function (char)
-    if char == 's' then
-      print('You pressed s!')
-    end
+  loop:on('char', 's', function ()
+    print('You pressed s!')
   end)
   
   loop:timeout(6, function ()
