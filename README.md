@@ -9,9 +9,9 @@ ComputerCraft-EventLoop is an API for Event-driven programming in ComputerCraft 
 
 To install this program via pastebin, run
 
-```pastebin get DJVaDmaA eventloop```
+```pastebin get QuPHXtCm eventloop```
 
-or go to http://pastebin.com/DJVaDmaA
+or go to http://pastebin.com/QuPHXtCm
 
 ## Usage ##
 
