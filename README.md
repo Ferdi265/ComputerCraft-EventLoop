@@ -110,7 +110,7 @@ Example output:
 
 #### ```EventLoop:once([eventType, [parameters...]], function)``` ####
 
-> Same as [on](#eventlooponeventtype-function), except that the Event Listener is removed after the event is fired the first time. (i.e. the listener is only called once)
+> Same as [on](#eventlooponeventtype-parameters-function), except that the Event Listener is removed after the event is fired the first time. (i.e. the listener is only called once)
 
 > **Returns** the [EventLoop](#eventloop) instance.
 
