@@ -111,6 +111,9 @@ local private = {
 	end
 }
 local EventLoop = {
+	version = function (self)
+		return '1.3'
+	end,
 	run = function (self, fn)
 		if fn then
 			self:timeout(0, fn)

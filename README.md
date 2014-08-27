@@ -5,13 +5,17 @@ An implementation of an Event Loop for ComputerCraft that provides an interface 
 
 ComputerCraft-EventLoop is an API for Event-driven programming in ComputerCraft Lua that eliminates the need to create your own loop to capture events.
 
+## Current Version ##
+
+ComputerCraft-EventLoop is currently at version 1.3
+
 ## Installation ##
 
 To install this program via pastebin, run
 
-```pastebin get QuPHXtCm eventloop```
+```pastebin get xpE2SeZ0 eventloop```
 
-or go to http://pastebin.com/QuPHXtCm
+or go to http://pastebin.com/xpE2SeZ0
 
 ## Usage ##
 
