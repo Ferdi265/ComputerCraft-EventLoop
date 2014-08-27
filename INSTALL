@@ -1,0 +1,5 @@
+--CCAPT Install File
+install = {
+	Dependencies = {},
+	InstallHierarchy = {{'/eventloop.lua', '/eventloop'}}
+}
