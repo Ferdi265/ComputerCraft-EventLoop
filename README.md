@@ -7,7 +7,7 @@ ComputerCraft-EventLoop is an API for Event-driven programming in ComputerCraft 
 
 ## Current Version ##
 
-ComputerCraft-EventLoop is currently at version 1.3
+ComputerCraft-EventLoop is currently at version 1.3.1
 
 ## Installation ##
 
@@ -165,7 +165,7 @@ Example output:
 
 > ##### ```error``` Events #####
 
-> When an Event Listener errors, ComputerCraft-EventLoop will fire an error event. If there is no Event Listener for the error event, the loop will be terminated with an error message. An ```error``` Listener will receive the error message as the first argument.
+> When an Event Listener errors, ComputerCraft-EventLoop will fire an ```error``` event. If there is no Event Listener for the ```error``` event, the loop will be terminated with an error message. An ```error``` Listener will receive the error message as the first argument.
 
 #### ```EventLoop:once([eventType, [parameters...]], function)``` ####
 
