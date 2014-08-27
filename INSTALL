@@ -3,3 +3,4 @@ install = {
 	Dependencies = {},
 	InstallHierarchy = {{'/eventloop.lua', '/eventloop'}}
 }
+return install
