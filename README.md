@@ -149,6 +149,10 @@ Example output:
 > When ComputerCraft-EventLoop receives a ```terminate``` Event, the loop will automatically be terminated forcefully.
   If there is an Event Listener for ```terminate```, the loop will continue as usual and will *not* be terminated.
 
+> ##### ```error``` Events #####
+
+> When an Event Listener errors, ComputerCraft-EventLoop will fire an error event. If there is no Event Listener for the error event, the loop will be terminated with an error message. An ```error``` Listener will receive the error message as the first argument.
+
 #### ```EventLoop:once([eventType, [parameters...]], function)``` ####
 
 > Same as [on](#eventlooponeventtype-parameters-function), except that the Event Listener is removed after the event is fired the first time. (i.e. the listener is only called once)
