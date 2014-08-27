@@ -74,6 +74,16 @@ Example output:
 
 > **Returns** the [EventLoop](#eventloop) instance.
 
+#### ```EventLoop:running()``` ####
+
+> **Returns** ```true``` if the [EventLoop](#eventloop) is running, ```false``` otherwise.
+
+#### ```EventLoop:reset()``` ####
+
+> Removes all listeners and fired custom events from the [EventLoop](#eventloop).
+
+> **Returns** the [EventLoop](#eventloop) instance.
+
 #### ```EventLoop:timeout([time], function)``` ####
 
 > Starts a timer that executes the function after time seconds, defaulting to 0 seconds.
@@ -234,6 +244,22 @@ Example output:
   ```
   
 > **Returns** ```nil``` when called with time, and the additional event parameters when called with event parameters
+
+#### ```EventLoop:listeners([eventType, [parameters...]])``` ####
+
+> Creates a list of listeners that listen for the given eventType and parameters.
+
+> The list is returned in this format:
+
+> ```lua
+  {
+    filter = <filter table>,
+    fn = <function or coroutine>,
+    type = <'on', 'once', 'deferred', or 'native'>
+  }
+  ```
+
+> **Returns** the list of listeners
 
 #### ```EventLoop:terminate()``` ####
 

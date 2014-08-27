@@ -7,38 +7,6 @@ local numkeys = function (table)
 	end
 	return keys
 end
---Proto Library (Inlined)
-local extend = function (target, ...)
-	target = target or {}
-	local sources = {...}
-	for index, source in ipairs(sources) do
-		for key, value in pairs(source) do
-			target[key] = source[key]
-		end
-	end
-	return target
-end
-local proto = function (Proto, ...)
-	Proto = Proto or {}
-	local sources = {...}
-	if #sources == 0 then
-		table.insert(sources, Proto)
-		Proto = {}
-	end
-	local instance = {}
-	setmetatable(instance, {__index = Proto})
-	return extend(instance, unpack(sources))
-end
-local inst = function (Proto, ...)
-	Proto = Proto or {}
-	local args = {...}
-	local instance = {}
-	setmetatable(instance, {__index = Proto})
-	if instance.init then
-		instance:init(unpack(args))
-	end
-	return instance
-end
 local pack = function (tbl)
 	local length = 0
 	for k, v in pairs(tbl) do
@@ -84,73 +52,45 @@ local slice = function (tbl, startIndex, endIndex)
 	return copy
 end
 --Variables
-local instance
---Protos
-local EventLoop = proto({
-	init = function (self)
-		self.listeners = {}
-		self.timeouts = {}
-		self.fired = {} 
-		self.running = false 
-		return self
-	end,
-	run = function (self, fn)
-		if fn then
-			self:timeout(0, fn)
-		end
-		if not self.running then 
-			self.running = true
-			while true do
-				if numkeys(self.listeners) > 0 and not self.exit then
-					local event
-					if self.fired[1] then
-						event = table.remove(self.fired, 1)
-					else
-						event = {coroutine.yield()}
-					end
-					self:handle(event)
-				else
-					break
-				end
-			end
-			self:init()
-		end
-		return self
-	end,
+local private = {
+	eventListeners = {},
+	timeouts = {},
+	fired = {},
+	running = false,
 	handle = function (self, event)
 		local listenerCalled = false
-		for i, listener in ipairs(self.listeners) do
+		for i, listener in ipairs(private.eventListeners) do
 			if listener then
-				if listener and ((listener.native and event[1] == 'terminate') or compare(listener.filter, event)) then
-					if type(listener.run) == 'function' then
-						table.insert(self.listeners, i + 1, {
+				if listener and ((listener.type and event[1] == 'terminate') or compare(listener.filter, event)) then
+					if type(listener.fn) == 'function' then
+						table.insert(private.eventListeners, i + 1, {
 							filter = listener.filter,
-							run = coroutine.create(listener.run),
-							id = listener.run
+							fn = coroutine.create(listener.fn),
+							type = 'once'
 						})
 					else
 						listenerCalled = true
 						local args
-						if listener.native then
+						if listener.type == 'native' then
 							args = event
 						else
 							args = slice(event, #listener.filter + 1)
 						end
 						listener.filter = {nil}
-						local res = {coroutine.resume(listener.run, unpack(args))}
+						local res = {coroutine.resume(listener.fn, unpack(args))}
 						if res[1] then
 							if type(res[2]) == 'table' then
 								listener.filter = res[2]
-								listener.native = false
-							elseif coroutine.status(listener.run) ~= 'dead' then
+								listener.type = 'deferred'
+							elseif coroutine.status(listener.fn) ~= 'dead' then
 								listener.filter = slice(res, 2)
-								listener.native = true
+								listener.type = 'native'
 							end
 						else
 							self:fire('error', res[2])
 						end
-						if coroutine.status(listener.run) == 'dead' then
-							self.listeners[i] = nil
+						if coroutine.status(listener.fn) == 'dead' then
+							self:remove(listener.fn)
 						end
 						if self.exit then
 							break
@@ -159,7 +99,7 @@ local EventLoop = proto({
 				end
 			end
 		end
-		pack(self.listeners)
+		pack(private.eventListeners)
 		if not listenerCalled then
 			if event[1] == 'terminate' then
 				error('Terminated', 0)
@@ -168,6 +108,41 @@ local EventLoop = proto({
 			end
 		end
 		return self
+	end
+}
+local EventLoop = {
+	run = function (self, fn)
+		if fn then
+			self:timeout(0, fn)
+		end
+		if not private.running then 
+			private.running = true
+			while true do
+				if numkeys(private.eventListeners) > 0 and not self.exit then
+					local event
+					if private.fired[1] then
+						event = table.remove(private.fired, 1)
+					else
+						event = {coroutine.yield()}
+					end
+					private.handle(self, event)
+				else
+					break
+				end
+			end
+			private.running = false
+			self:reset()
+		end
+		return self
+	end,
+	running = function (self)
+		return private.running
+	end,
+	reset = function (self)
+		private.eventListeners = {}
+		private.timeouts = {}
+		private.fired = {}
+		return self
 	end,
 	interval = function (self, time, fn)
 		if not fn then
@@ -175,17 +150,16 @@ local EventLoop = proto({
 			time = 0
 		end
 		local id = os.startTimer(time)
-		self.timeouts[id] = fn
-		table.insert(self.listeners, {
+		private.timeouts[id] = fn
+		table.insert(private.eventListeners, {
 			filter = {'timer'},
-			run = function (timerId)
+			fn = function (timerId)
 				if id == timerId then
 					id = os.startTimer(time)
 					fn()
 				end
 			end,
-			id = fn,
-			native = false
+			type = 'on'
 		})
 		return id
 	end,
@@ -195,7 +169,7 @@ local EventLoop = proto({
 			time = 0
 		end
 		local id = os.startTimer(time)
-		self.timeouts[id] = fn
+		private.timeouts[id] = fn
 		self:once('timer', id, fn)
 		return id
 	end,
@@ -205,11 +179,10 @@ local EventLoop = proto({
 			error('cannot register event without callback')
 		end
 		local fn = table.remove(filter)
-		table.insert(self.listeners, {
+		table.insert(private.eventListeners, {
 			filter = filter,
-			run = fn,
-			id = fn,
-			native = false
+			fn = fn,
+			type = 'on'
 		})
 		return self
 	end,
@@ -219,21 +192,20 @@ local EventLoop = proto({
 			error('cannot register event without callback')
 		end
 		local fn = table.remove(filter)
-		table.insert(self.listeners, {
+		table.insert(private.eventListeners, {
 			filter = filter,
-			run = coroutine.create(fn),
-			id = fn,
-			native = false
+			fn = coroutine.create(fn),
+			native = 'once'
 		})
 		return self
 	end,
 	fire = function (self, type, ...)
-		table.insert(self.fired, {type, ...})
+		table.insert(private.fired, {type, ...})
 		return self
 	end,
 	cancel = function (self, id)
-		if self.timeouts[id] then
-			self:off('timer', self.timeouts[id])
+		if private.timeouts[id] then
+			self:off('timer', private.timeouts[id])
 		end
 		return self
 	end,
@@ -242,12 +214,22 @@ local EventLoop = proto({
 			fn = eventType
 			eventType = nil
 		end
-		for i, listener in ipairs(self.listeners) do
-			if listener and (listener.filter[1] == eventType or not eventType) and (listener.id == fn or not fn) then
-				self.listeners[i] = nil
+		for i, listener in ipairs(private.eventListeners) do
+			if listener and (listener.filter[1] == eventType or not eventType) and (listener.fn == fn or not fn) then
+				private.eventListeners[i] = nil
 			end
 		end
 		return self
+	end,
+	listeners = function (self, ...)
+		local filter = {...}
+		local list = {}
+		for i, listener in ipairs(private.eventListeners) do
+			if listener and compare(filter, listener.filter) then
+				table.insert(list, listener)
+			end
+		end
+		return list
 	end,
 	defer = function (self, ...)
 		local args = {...}
@@ -262,12 +244,9 @@ local EventLoop = proto({
 		self.exit = true
 		return self
 	end
-})
+}
 ----Globals
 --Functions
 create = function ()
-	if not instance then
-		instance = inst(EventLoop)
-	end
-	return instance
+	return EventLoop
 end
