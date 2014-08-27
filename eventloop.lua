@@ -112,7 +112,7 @@ local private = {
 }
 local EventLoop = {
 	version = function (self)
-		return '1.3'
+		return '1.4'
 	end,
 	run = function (self, fn)
 		if fn then
@@ -212,13 +212,14 @@ local EventLoop = {
 		end
 		return self
 	end,
-	off = function (self, eventType, fn)
-		if not fn and type(eventType) == 'function' then
-			fn = eventType
-			eventType = nil
+	off = function (self, ...)
+		local filter = {...}
+		local fn
+		if type(filter[#filter]) == 'function' then
+			fn = table.remove(filter)
 		end
 		for i, listener in ipairs(private.eventListeners) do
-			if listener and (listener.filter[1] == eventType or not eventType) and (listener.fn == fn or not fn) then
+			if listener and compare(filter, listener.filter) and (listener.fn == fn or not fn) then
 				private.eventListeners[i] = nil
 			end
 		end

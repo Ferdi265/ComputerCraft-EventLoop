@@ -7,15 +7,15 @@ ComputerCraft-EventLoop is an API for Event-driven programming in ComputerCraft 
 
 ## Current Version ##
 
-ComputerCraft-EventLoop is currently at version 1.3.1
+ComputerCraft-EventLoop is currently at version 1.4
 
 ## Installation ##
 
 To install this program via pastebin, run
 
-```pastebin get xpE2SeZ0 eventloop```
+```pastebin get RWaMMZVM eventloop```
 
-or go to http://pastebin.com/xpE2SeZ0
+or go to http://pastebin.com/RWaMMZVM
 
 ## Usage ##
 
@@ -182,11 +182,11 @@ Example output:
 
 > **Returns** the [EventLoop](#eventloop) instance.
 
-#### ```EventLoop:off([eventType], [function])``` ####
+#### ```EventLoop:off([eventType, [parameters...]], [function])``` ####
 
-> Removes the specified event listener for the given event type.
-  If no type is given, removes the specified 'any event' Listener.
-  If no function is given, removes all Event Eisteners for that type.
+> Removes the specified event listener for the given eventType and parameters.
+  If no type is given, removes that Event Listener for every type of event.
+  If no function is given, removes all Event Listeners for that type and parameters.
   If called without arguments, removes all Listeners.
 
 > Example:
@@ -196,7 +196,7 @@ Example output:
     print('2 said: ', msg)
   end)
   loop:on('char', 'q', function ()
-    loop:off('rednet_message')
+    loop:off('rednet_message', 2)
   end)
   ```
 
