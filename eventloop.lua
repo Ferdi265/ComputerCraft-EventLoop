@@ -121,7 +121,7 @@ local EventLoop = proto({
 		local listenerCalled = false
 		for i, listener in ipairs(self.listeners) do
 			if listener then
-				if listener and compare(listener.filter, event) then
+				if listener and ((listener.native and event[1] == 'terminate') or compare(listener.filter, event)) then
 					if type(listener.run) == 'function' then
 						table.insert(self.listeners, i + 1, {
 							filter = listener.filter,
@@ -131,22 +131,23 @@ local EventLoop = proto({
 					else
 						listenerCalled = true
 						local args
-						if listener.fullArgs then
+						if listener.native then
 							args = event
 						else
 							args = slice(event, #listener.filter + 1)
 						end
+						listener.filter = {nil}
 						local res = {coroutine.resume(listener.run, unpack(args))}
 						if res[1] then
 							if type(res[2]) == 'table' then
 								listener.filter = res[2]
-								listener.fullArgs = false
+								listener.native = false
 							elseif coroutine.status(listener.run) ~= 'dead' then
 								listener.filter = slice(res, 2)
-								listener.fullArgs = true
+								listener.native = true
 							end
 						else
-							error(res[2], 0)
+							self:fire('error', res[2])
 						end
 						if coroutine.status(listener.run) == 'dead' then
 							self.listeners[i] = nil
@@ -159,8 +160,12 @@ local EventLoop = proto({
 			end
 		end
 		pack(self.listeners)
-		if not listenerCalled and event[1] == 'terminate' then
-			error('Terminated', 0)
+		if not listenerCalled then
+			if event[1] == 'terminate' then
+				error('Terminated', 0)
+			elseif event[1] == 'error' then
+				error('Error in listener: ' .. event[2], 0)
+			end
 		end
 		return self
 	end,
@@ -180,7 +185,7 @@ local EventLoop = proto({
 				end
 			end,
 			id = fn,
-			fullArgs = false
+			native = false
 		})
 		return id
 	end,
@@ -204,7 +209,7 @@ local EventLoop = proto({
 			filter = filter,
 			run = fn,
 			id = fn,
-			fullArgs = false
+			native = false
 		})
 		return self
 	end,
@@ -218,7 +223,7 @@ local EventLoop = proto({
 			filter = filter,
 			run = coroutine.create(fn),
 			id = fn,
-			fullArgs = false
+			native = false
 		})
 		return self
 	end,
