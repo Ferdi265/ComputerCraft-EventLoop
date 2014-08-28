@@ -106,7 +106,7 @@ private = {
 }
 local EventLoop = {
 	version = function (self)
-		return '1.4'
+		return '1.4.1'
 	end,
 	run = function (self, fn)
 		if fn then

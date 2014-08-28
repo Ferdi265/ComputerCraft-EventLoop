@@ -7,7 +7,7 @@ ComputerCraft-EventLoop is an API for Event-driven programming in ComputerCraft 
 
 ## Current Version ##
 
-ComputerCraft-EventLoop is currently at version 1.4
+ComputerCraft-EventLoop is currently at version 1.4.1
 
 ## Installation ##
 
