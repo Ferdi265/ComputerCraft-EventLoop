@@ -1,12 +1,5 @@
 ----Locals
 --Functions
-local numkeys = function (table)
-	local keys = 0
-	for k in pairs(table) do
-		keys = keys + 1
-	end
-	return keys
-end
 local pack = function (tbl)
 	local length = 0
 	for k, v in pairs(tbl) do
@@ -52,7 +45,8 @@ local slice = function (tbl, startIndex, endIndex)
 	return copy
 end
 --Variables
-local private = {
+local private
+private = {
 	eventListeners = {},
 	timeouts = {},
 	fired = {},
@@ -61,7 +55,7 @@ local private = {
 		local listenerCalled = false
 		for i, listener in ipairs(private.eventListeners) do
 			if listener then
-				if listener and ((listener.type and event[1] == 'terminate') or compare(listener.filter, event)) then
+				if listener and ((listener.type == 'native' and event[1] == 'terminate') or compare(listener.filter, event)) then
 					if type(listener.fn) == 'function' then
 						table.insert(private.eventListeners, i + 1, {
 							filter = listener.filter,
@@ -90,7 +84,7 @@ local private = {
 							self:fire('error', res[2])
 						end
 						if coroutine.status(listener.fn) == 'dead' then
-							self:remove(listener.fn)
+							self:off(listener.fn)
 						end
 						if self.exit then
 							break
@@ -121,7 +115,7 @@ local EventLoop = {
 		if not private.running then 
 			private.running = true
 			while true do
-				if numkeys(private.eventListeners) > 0 and not self.exit then
+				if #private.eventListeners > 0 and not self.exit then
 					local event
 					if private.fired[1] then
 						event = table.remove(private.fired, 1)
@@ -215,7 +209,7 @@ local EventLoop = {
 	off = function (self, ...)
 		local filter = {...}
 		local fn
-		if type(filter[#filter]) == 'function' then
+		if type(filter[#filter]) == 'function' or type(filter[#filter]) == 'thread' then
 			fn = table.remove(filter)
 		end
 		for i, listener in ipairs(private.eventListeners) do
