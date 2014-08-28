@@ -17,6 +17,8 @@ To install this program via pastebin, run
 
 or go to http://pastebin.com/RWaMMZVM
 
+ComputerCraft-EventLoop is also available on [CCAPT](https://github.com/LNETeam/CCAPT)
+
 ## Usage ##
 
 A program using ComputerCraft-EventLoop may look like this:
