@@ -50,7 +50,10 @@ private = {
 	eventListeners = {},
 	timeouts = {},
 	fired = {},
-	running = false,
+	running = nil,
+	loop = {
+		filter = {}
+	},
 	handle = function (self, event)
 		local listenerCalled = false
 		for i, listener in ipairs(private.eventListeners) do
@@ -71,7 +74,9 @@ private = {
 							args = slice(event, #listener.filter + 1)
 						end
 						listener.filter = {nil}
+						private.running = listener
 						local res = {coroutine.resume(listener.fn, unpack(args))}
+						private.running = private.loop
 						if res[1] then
 							if type(res[2]) == 'table' then
 								listener.filter = res[2]
@@ -93,14 +98,18 @@ private = {
 				end
 			end
 		end
-		pack(private.eventListeners)
 		if not listenerCalled then
 			if event[1] == 'terminate' then
-				error('Terminated', 0)
+				if event[2] then
+					self:off()
+				else
+					error('Terminated', 0)
+				end
 			elseif event[1] == 'error' then
 				error('Error in listener: ' .. event[2], 0)
 			end
 		end
+		pack(private.eventListeners)
 		return self
 	end
 }
@@ -112,10 +121,10 @@ local EventLoop = {
 		if fn then
 			self:timeout(0, fn)
 		end
-		if not private.running then 
-			private.running = true
+		private.running = private.loop
+		if not self:running() then
 			while true do
-				if #private.eventListeners > 0 and not self.exit then
+				if #private.eventListeners > 0 then
 					local event
 					if private.fired[1] then
 						event = table.remove(private.fired, 1)
@@ -127,7 +136,6 @@ local EventLoop = {
 					break
 				end
 			end
-			private.running = false
 			self:reset()
 		end
 		return self
@@ -239,7 +247,11 @@ local EventLoop = {
 		end
 	end,
 	terminate = function (self)
-		self.exit = true
+		self:fire('terminate', 0)
+		return self
+	end,
+	kill = function (self)
+		self:off()
 		return self
 	end
 }
