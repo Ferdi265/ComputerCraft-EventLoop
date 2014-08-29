@@ -100,11 +100,7 @@ private = {
 		end
 		if not listenerCalled then
 			if event[1] == 'terminate' then
-				if event[2] then
-					self:off()
-				else
-					error('Terminated', 0)
-				end
+				error('Terminated', 0)
 			elseif event[1] == 'error' then
 				error('Error in listener: ' .. event[2], 0)
 			end
@@ -247,7 +243,7 @@ local EventLoop = {
 		end
 	end,
 	terminate = function (self)
-		self:fire('terminate', 0)
+		self:fire('terminate')
 		return self
 	end,
 	kill = function (self)

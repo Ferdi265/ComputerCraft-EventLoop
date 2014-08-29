@@ -82,7 +82,7 @@ Example output:
 
 #### ```EventLoop:running()``` ####
 
-> **Returns** ```true``` if the [EventLoop](#eventloop) is running, ```false``` otherwise.
+> **Returns** the currently running listener (format described at [EventLoop](#eventlooplistenerseventtype-parameters)) if the [EventLoop](#eventloop) is running, ```nil``` otherwise.
 
 #### ```EventLoop:reset()``` ####
 
@@ -269,20 +269,40 @@ Example output:
 
 #### ```EventLoop:terminate()``` ####
 
-> Forces the loop to terminate after the current iteration.
-  Event Listeners for the currently handled event will still be executed, but no further events will be handled.
+> Sends a terminate event to the loop that terminates the loop if it is not handled by any event listeners.
 
 > ```lua
   local count = 0
   loop:on('terminate', function ()
     count = count + 1
     if count == 2 then
-      loop:terminate()
+      print('Terminating')
+      loop:kill()
     else
       print('Try again.')
     end
   end)
+  loop:on('char', 't', function ()
+    print('You pressed t...')
+    loop:terminate()
+  end)
   ```
 
 > **Returns** the [EventLoop](#eventloop) instance.
+
+#### ```EventLoop:kill()``` ####
+
+> Terminates the loop silently the next time the event listener yields.
+
+> Example:
+
+> ```lua
+  loop:on('terminate', function ()
+    loop:kill() -- supress 'Terminated' message if the program is terminated
+  end)
+  print('Try holding Ctrl+T.')
+  ```
+
+> **Returns** the [EventLoop](#eventloop) instance.
+
 
