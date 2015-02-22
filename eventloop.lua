@@ -196,7 +196,7 @@ local EventLoop = {
 		table.insert(private.eventListeners, {
 			filter = filter,
 			fn = coroutine.create(fn),
-			native = 'once'
+			type = 'once'
 		})
 		return self
 	end,
