@@ -117,8 +117,8 @@ local EventLoop = {
 		if fn then
 			self:timeout(0, fn)
 		end
-		private.running = private.loop
 		if not self:running() then
+			private.running = private.loop
 			while true do
 				if #private.eventListeners > 0 then
 					local event
