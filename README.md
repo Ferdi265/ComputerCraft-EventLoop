@@ -82,7 +82,7 @@ end)
 
 #### ```EventLoop:running()``` ####
 
-**Returns** the currently running listener (format described at [EventLoop](#eventlooplistenerseventtype-parameters)) if the [EventLoop](#eventloop) is running, ```nil``` otherwise.
+**Returns** the currently running listener (format described at [EventLoop:listeners()](#eventlooplistenerseventtype-parameters)) if the [EventLoop](#eventloop) is running, ```nil``` otherwise.
 
 #### ```EventLoop:reset()``` ####
 
